@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# edii-rpa
-=======
 ## Demo
 
 ![alt text](https://i.imgur.com/FdVJc1Y.png)
@@ -47,4 +44,3 @@ Access the login page: [http://127.0.0.1:8000/login](http://127.0.0.1:8000/login
 
 -   Email: [kahfi@gmail.com](mailto:kahfi@gmail.com)
 -   Password: password
->>>>>>> 1be1a06 (Initial commit)

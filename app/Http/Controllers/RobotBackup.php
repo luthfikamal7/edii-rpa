@@ -355,7 +355,7 @@ class Robot extends Controller
               // Simulasikan operasi robot
               // Pada kasus nyata, Anda mungkin memanggil fungsi atau service yang melakukan operasi ini
               $result = true; // Misal hasil dari operasi robot
-              $psCommand = '"Start-Process -FilePath \"C:\\Program Files\\OpenRPA\\OpenRPA.exe\" -ArgumentList \"-workflowid '.$workflow_id.'\""';
+              $psCommand = '"Start-Process -FilePath \"C:\\net462\\AthenaRPA.exe\" -ArgumentList \"-workflowid '.$workflow_id.'\""';
               // Define timeout in seconds
               $max_execution_time = 60000000000; // Example: 60 seconds
       

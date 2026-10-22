@@ -7,6 +7,14 @@
         <p class="mt-1 text-sm text-gray-600">
             {{ __("Update your account's profile information and email address.") }}
         </p>
+
+        <p class="mt-1 text-sm text-gray-600">
+            {{ __("Your License Code : fz89**************6E") }}
+        </p>
+
+        <p class="mt-2 text-sm font-medium text-indigo-600">
+            Periode Aktif: 3 September 2025 – 2 September 2026
+        </p>
     </header>
 
     <x-splade-form method="patch" :action="route('profile.update')" :default="$user" class="mt-6 space-y-6" preserve-scroll>

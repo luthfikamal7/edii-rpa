@@ -141,7 +141,7 @@ class Robot extends Controller
             'cekRobot' => $cekRobot,
             'title' => $this->title,
             'links' => $this->links,
-            'percentase' => 100/$robot->step
+            'percentase' => round(100/$robot->step,2)
         ]);
     }
 
@@ -379,7 +379,7 @@ class Robot extends Controller
               // Simulasikan operasi robot
               // Pada kasus nyata, Anda mungkin memanggil fungsi atau service yang melakukan operasi ini
               $result = true; // Misal hasil dari operasi robot
-              $psCommand = '"Start-Process -FilePath \"C:\\Program Files\\OpenRPA\\OpenRPA.exe\" -ArgumentList \"-workflowid '.$workflow_id.'\""';
+              $psCommand = '"Start-Process -FilePath \"C:\\net462\\AthenaRPA.exe\" -ArgumentList \"-workflowid '.$workflow_id.'\""';
               // Define timeout in seconds
               $max_execution_time = 60000000000; // Example: 60 seconds
       
@@ -509,37 +509,92 @@ class Robot extends Controller
     }
     
 
+    //OLD CODE
+    // public function getLogDetail($workflow_id)
+    // {
+    //     $get = Model::where('workflow_id', $workflow_id)->first();
+    //     if (!$get) {
+    //         return response()->json([
+    //             'message' => 'Workflow ID tidak ditemukan.',
+    //             'success' => false,
+    //             'workflow_id' => $workflow_id
+    //         ], 404);
+    //     }else{
+    //         $robot = RobotLog::where('robot_id', $get->id)->where('status', 0)->first();
+
+    //         $logs = RobotLogDetail::join('robot_logs as rl', 'rl.id', '=', 'robot_log_details.robot_log_id')->where('rl.robot_id', $get->id)->where('rl.status', 0)->select('robot_log_details.*')->get();
+    //         $cek_value = RobotLogDetail::join('robot_logs as rl', 'rl.id', '=', 'robot_log_details.robot_log_id')->where('rl.robot_id', $get->id)->where('rl.status', 0)->select('robot_log_details.nomor')->orderBy('robot_log_details.nomor','desc')->first();
+
+    //         // $logs = RobotLogDetail::where('robot_log_id', $robot->id)->get();
+    //         // $cek_value = RobotLogDetail::where('robot_log_id', $robot->id)
+    //         // ->orderBy('nomor','desc')
+    //         // ->first();
+    //         // $logs = RobotLogDetail::join('robot_logs as rl', 'rl.id', '=', 'robot_log_details.robot_log_id')->where('rl.robot_id', $get->id)->select('robot_log_details.*')->get();
+    //         $formattedLogs = $logs->map(function ($log) {
+    //             return [
+    //                 'waktu_selesai' => $log->start_date,
+    //                 'nomor' => $log->nomor,
+    //                 'title' => $log->title,
+    //                 'status_error' => $log->status_error,
+    //             ];
+    //         });
+            
+    //         $return['start_date'] = $robot->start_date;
+    //         $return['data'] = $formattedLogs;
+    //         $return['value_percentase'] = $cek_value;
+    //         return response()->json($return);
+    //     }
+
+    //     // Format data untuk dikirim balik ke jQuery Ajax
+        
+    // }
+
+    //NEW CODE 05-MAR-2025 (Fix the percentage issue)
     public function getLogDetail($workflow_id)
     {
         $get = Model::where('workflow_id', $workflow_id)->first();
+
         if (!$get) {
             return response()->json([
                 'message' => 'Workflow ID tidak ditemukan.',
                 'success' => false,
                 'workflow_id' => $workflow_id
             ], 404);
-        }else{
-            $robot = RobotLog::where('robot_id', $get->id)->where('status', 0)->first();
-
-            $logs = RobotLogDetail::join('robot_logs as rl', 'rl.id', '=', 'robot_log_details.robot_log_id')->where('rl.robot_id', $get->id)->where('rl.status', 0)->select('robot_log_details.*')->get();
-            $cek_value = RobotLogDetail::join('robot_logs as rl', 'rl.id', '=', 'robot_log_details.robot_log_id')->where('rl.robot_id', $get->id)->where('rl.status', 0)->select('robot_log_details.nomor')->orderBy('robot_log_details.nomor','desc')->first();
-            // $logs = RobotLogDetail::join('robot_logs as rl', 'rl.id', '=', 'robot_log_details.robot_log_id')->where('rl.robot_id', $get->id)->select('robot_log_details.*')->get();
-            $formattedLogs = $logs->map(function ($log) {
-                return [
-                    'waktu_selesai' => $log->start_date,
-                    'nomor' => $log->nomor,
-                    'title' => $log->title,
-                    'status_error' => $log->status_error,
-                ];
-            });
-            
-            $return['start_date'] = $robot->start_date;
-            $return['data'] = $formattedLogs;
-            $return['value_percentase'] = $cek_value;
-            return response()->json($return);
         }
 
-        // Format data untuk dikirim balik ke jQuery Ajax
-        
+        $robot = RobotLog::where('robot_id', $get->id)
+            ->where('status', 0)
+            ->latest('id')
+            ->first();
+
+        if (!$robot) {
+            return response()->json([
+                'start_date' => null,
+                'data' => [],
+                'value_percentase' => ['nomor' => 0]
+            ]);
+        }
+
+        $logs = RobotLogDetail::where('robot_log_id', $robot->id)->get();
+
+        $currentStep = RobotLogDetail::where('robot_log_id', $robot->id)
+            ->max('nomor');
+
+        $formattedLogs = $logs->map(function ($log) {
+            return [
+                'waktu_selesai' => $log->start_date,
+                'nomor' => $log->nomor,
+                'title' => $log->title,
+                'status_error' => $log->status_error,
+            ];
+        });
+
+        return response()->json([
+            'start_date' => $robot->start_date,
+            'data' => $formattedLogs,
+            'value_percentase' => [
+                'nomor' => $currentStep ?? 0
+            ]
+        ]);
     }
 }
